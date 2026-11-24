@@ -25,19 +25,63 @@ class State:
         return self.tiles.index(0)
 
     def neighbors(self) -> List["State"]:
-        """Retorna os estados filhos válidos a partir deste estado."""
-        # TODO: implemente a geração de estados filhos
-        raise NotImplementedError
+        vizinhos = []
+        posicao = self.blank_index
+
+        movimentos = [
+            (-1, 0, "CIMA"),
+            (1, 0, "BAIXO"),
+            (0, -1, "ESQUERDA"),
+            (0, 1, "DIREITA")
+        ]
+
+        linha = posicao // 3
+        coluna = posicao % 3
+
+        for mov_linha, mov_coluna, acao in movimentos:
+            nova_linha = linha + mov_linha
+            nova_coluna = coluna + mov_coluna
+
+            if 0 <= nova_linha < 3 and 0 <= nova_coluna < 3:
+                nova_posicao = nova_linha * 3 + nova_coluna
+
+                novo_tabuleiro = list(self.tiles)
+
+                novo_tabuleiro[posicao], novo_tabuleiro[nova_posicao] = (
+                    novo_tabuleiro[nova_posicao],
+                    novo_tabuleiro[posicao]
+                )
+
+                vizinhos.append(State(
+                    tuple(novo_tabuleiro),
+                    parent=self,
+                    action=acao,
+                    cost=self.cost + 1
+                ))
+
+        return vizinhos
 
     def path(self) -> List["State"]:
-        """Retorna a sequência de estados do estado inicial até este."""
-        # TODO: implemente a reconstrução do caminho usando self.parent
-        raise NotImplementedError
+        caminho = []
+        atual = self
+
+        while atual is not None:
+            caminho.append(atual)
+            atual = atual.parent
+
+        caminho.reverse()
+
+        return caminho
 
     def actions(self) -> List[str]:
-        """Retorna a sequência de ações do estado inicial até este."""
-        # TODO: implemente usando path()
-        raise NotImplementedError
+        caminho = self.path()
+        acoes = []
+
+        for estado in caminho:
+            if estado.action is not None:
+                acoes.append(estado.action)
+
+        return acoes
 
     def __eq__(self, other: object) -> bool:
         return isinstance(other, State) and self.tiles == other.tiles
